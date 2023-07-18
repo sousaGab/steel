@@ -1,4 +1,4 @@
-import { File } from "@babel/types";
+import { File, isMemberExpression } from "@babel/types";
 import traverse from "@babel/traverse";
 import { Smell } from "../smell";
 import { isTestCase } from '../util';
@@ -66,15 +66,41 @@ export default class MysteryGuestRule extends Rule {
     return results;
   }
 
+  private hasNockAsServerMocking(node: any): boolean {
+    const callee = node.callee;
+    return callee.object.name === 'nock' 
+      && callee.property.name === 'get';
+  }
+
   detect(ast: File): Smell[] {
     const results: Smell[] = [];
-    this.findRequires(ast)
+    this.findRequires(ast);
+    let exitTraverse: boolean = false;
     traverse(ast, {
       CallExpression: (path: any) => {
+              if(exitTraverse) {
+                exitTraverse = false;
+                return;
+              }
         const node = path.node;
         if (isTestCase(node)) {
           path.traverse({
             MemberExpression: (path: any) => {
+              // if (this.hasNockAsServerMocking(path.node)) {
+              // console.log(path.node.object.callee.object.callee.name);
+              // console.log(isMemberExpression(path.node));
+              // console.log(path.node.object);
+              if ((path.node.type === 'MemberExpression' && 
+                  path.node.object.type === 'CallExpression' && 
+              //     // path.node.object.callee.type === 'Identifier' && 
+              //     // path.node.object.callee.name === 'nock' && 
+              //     // path.node.property.name === 'get')) {
+                  path.node.property.name === 'reply')) {
+                exitTraverse = true;
+                console.log(">>> nock detected!");
+                return;
+              }
+    
               modules.forEach(mdl => {
                 const filterModule = (item: any) => item.module === mdl.name;
                 mysteryMethods.filter(filterModule).forEach(item => {

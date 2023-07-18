@@ -131,6 +131,11 @@ export function isChaiBdd(node: CallExpression): boolean {
   //   && chaiBddMethods.includes(node.callee.property.name);
 }
 
+export function isChaiShould(node: MemberExpression): boolean {
+  return (node.property.type === "Identifier" && node.property.name === "should") ||
+    (node.object.type === "Identifier" && node.object.name === "should");
+}
+
 export function isChaiHttp(node: CallExpression): boolean {
   return isMemberExpression(node.callee)
     && isIdentifier(node.callee.property)

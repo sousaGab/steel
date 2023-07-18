@@ -1,7 +1,7 @@
 import { CallExpression, File } from "@babel/types";
 import traverse, { NodePath } from "@babel/traverse";
 import { Smell } from "../smell";
-import { isAssertion, isTestCase, isChaiAssert, isJest, isChaiBdd, isChaiHttp } from "../util";
+import { isAssertion, isTestCase, isChaiAssert, isJest, isChaiBdd, isChaiShould, isChaiHttp } from "../util";
 import Rule from "../rule";
 
 export default class UnknownTestRule extends Rule {
@@ -21,6 +21,12 @@ export default class UnknownTestRule extends Rule {
             CallExpression: (path: any) => {
               const innerNode = path.node;
               if (isAssertion(innerNode) || isChaiAssert(innerNode) || isChaiBdd(innerNode) || isChaiHttp(innerNode) || isJest(innerNode)) {
+                assertions.push(innerNode);
+              }
+            },
+            MemberExpression: (path: any) => {
+              const innerNode = path.node;
+              if (isChaiShould(innerNode)) {
                 assertions.push(innerNode);
               }
             }
