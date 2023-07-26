@@ -68,7 +68,7 @@ export default class MysteryGuestRule extends Rule {
 
   private hasNockAsServerMocking(node: any): boolean {
     const callee = node.callee;
-    return callee.object.name === 'nock' 
+    return callee.object.name === 'nock'
       && callee.property.name === 'get';
   }
 
@@ -78,10 +78,10 @@ export default class MysteryGuestRule extends Rule {
     let exitTraverse: boolean = false;
     traverse(ast, {
       CallExpression: (path: any) => {
-              if(exitTraverse) {
-                exitTraverse = false;
-                return;
-              }
+        if (exitTraverse) {
+          exitTraverse = false;
+          return;
+        }
         const node = path.node;
         if (isTestCase(node)) {
           path.traverse({
@@ -90,17 +90,17 @@ export default class MysteryGuestRule extends Rule {
               // console.log(path.node.object.callee.object.callee.name);
               // console.log(isMemberExpression(path.node));
               // console.log(path.node.object);
-              if ((path.node.type === 'MemberExpression' && 
-                  path.node.object.type === 'CallExpression' && 
-              //     // path.node.object.callee.type === 'Identifier' && 
-              //     // path.node.object.callee.name === 'nock' && 
-              //     // path.node.property.name === 'get')) {
-                  path.node.property.name === 'reply')) {
+              if ((path.node.type === 'MemberExpression' &&
+                path.node.object.type === 'CallExpression' &&
+                //     // path.node.object.callee.type === 'Identifier' && 
+                //     // path.node.object.callee.name === 'nock' && 
+                //     // path.node.property.name === 'get')) {
+                path.node.property.name === 'reply')) {
                 exitTraverse = true;
                 console.log(">>> nock detected!");
                 return;
               }
-    
+
               modules.forEach(mdl => {
                 const filterModule = (item: any) => item.module === mdl.name;
                 mysteryMethods.filter(filterModule).forEach(item => {
