@@ -1,4 +1,4 @@
-import { callExpression, File, isMemberExpression } from "@babel/types";
+import { File } from "@babel/types";
 import traverse from "@babel/traverse";
 import { Smell } from "../smell";
 import { isTestCase } from '../util';
@@ -143,7 +143,6 @@ export default class MysteryGuestRule extends Rule {
                 const filterModule = (item: any) => item.module === mdl.name;
                 mysteryMethods.filter(filterModule).forEach(item => {
                   if (this.hasMysteryMethodCalled(path.node, mdl.alias, item.method)) {
-                    console.log('found mystery guest!')
                     results.push(new Smell(path.node.loc.start));
                   }
                 });
@@ -153,7 +152,6 @@ export default class MysteryGuestRule extends Rule {
         }
       },
     });
-    console.log(results);
     return results;
   }
 }
