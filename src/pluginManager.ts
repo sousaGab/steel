@@ -34,6 +34,7 @@ function loadFiles(): Set<Plugin> {
 export function listSmellPackageNames(): String[] {
   return Array.from(loadFiles().values()).map(item => item.packageName);
 }
+
 function loadPlugin<T>(plugin: Plugin, filepath: string): T {
   const properties = { path: { value: filepath } };
   return Object.create(plugin?.instance.default.prototype, properties) as T;

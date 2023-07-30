@@ -169,41 +169,43 @@ export function writeResumeCsv(report: Report, outputPath: string): void {
 }
 
 export function writeDetailedCsv(report: Report, outputPath: string): void {
-  const output: any = [];
-  output.push(
-    [
-      'Filename',
-      'TotalMethods',
-      'TotalTestSmells',
-      'Physical SLOC',
-      'Logical SLOC',
-      'Cyclomatic',
-      'CyclomaticDensity',
-      'HalsteadBugs',         // The number of delivered bugs (B) correlates with the overall complexity of the software.
-      'HalsteadDifficulty',   // This parameter shows how difficult to handle the program is.
-      'HalsteadEffort',       // Measures the amount of mental activity needed to translate the existing algorithm into implementation in the specified program language.
-      'HalsteadLength',       // The total number of operator occurrences and the total number of operand occurrences.
-      'HalsteadTime',         // Shows time (in minutes) needed to translate the existing algorithm into implementation in the specified program language.
-      'HalsteadVocabulary',   // The total number of unique operator and unique operand occurrences.
-      'HalsteadVolume',       // Proportional to program size, represents the size, in bits, of space necessary for storing the program.
-      'Maintainability',
-      'AssertionRoulette',
-      'ConditionalTestLogic',
-      'DuplicateAsserts',
-      'EagerTest',
-      'EmptyTest',
-      'ExceptionHandling',
-      'IgnoredTest',
-      'LazyTest',
-      'MagicTest',
-      'MysteryTest',
-      'RedundantAssertion',
-      'RedundantPrint',
-      'ResourceOptimism',
-      'SleepyTest',
-      'UnknownTest',
-    ].join(',')
-  );
+  // const output: any = [];
+  // output.push(
+  //   [
+  //     'Filename',
+  //     'TotalMethods',
+  //     'TotalTestSmells',
+  //     'Physical SLOC',
+  //     'Logical SLOC',
+  //     'Cyclomatic',
+  //     'CyclomaticDensity',
+  //     'HalsteadBugs',         // The number of delivered bugs (B) correlates with the overall complexity of the software.
+  //     'HalsteadDifficulty',   // This parameter shows how difficult to handle the program is.
+  //     'HalsteadEffort',       // Measures the amount of mental activity needed to translate the existing algorithm into implementation in the specified program language.
+  //     'HalsteadLength',       // The total number of operator occurrences and the total number of operand occurrences.
+  //     'HalsteadTime',         // Shows time (in minutes) needed to translate the existing algorithm into implementation in the specified program language.
+  //     'HalsteadVocabulary',   // The total number of unique operator and unique operand occurrences.
+  //     'HalsteadVolume',       // Proportional to program size, represents the size, in bits, of space necessary for storing the program.
+  //     'Maintainability',
+  //     'AssertionRoulette',
+  //     'ConditionalTestLogic',
+  //     'DuplicateAsserts',
+  //     'EagerTest',
+  //     'EmptyTest',
+  //     'ExceptionHandling',
+  //     'IgnoredTest',
+  //     'LazyTest',
+  //     'MagicTest',
+  //     'MysteryTest',
+  //     'RedundantAssertion',
+  //     'RedundantPrint',
+  //     'ResourceOptimism',
+  //     'SleepyTest',
+  //     'UnknownTest',
+  //   ].join(',')
+  // );
+  const plugins = listSmellPackageNames();
+  const output = ['FileName, TotalMethods, TotalTestSmells,' + qualityHeaders.join() + ',' + plugins.join()];
   report.smelledFiles.forEach(file => {
     const row: any[] = [];
     const quality = <Quality>file.metrics;
@@ -224,7 +226,7 @@ export function writeDetailedCsv(report: Report, outputPath: string): void {
     row.push(quality.aggregate.halstead.volume);
     row.push(quality.maintainability);
 
-    let smellsCount: number[] = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    let smellsCount: number[] = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     smellInfo.forEach(element => {
       switch (element.name) {
         case "Assertion Roulette":
@@ -245,32 +247,35 @@ export function writeDetailedCsv(report: Report, outputPath: string): void {
         case "Exception Handling":
           smellsCount[5] = element.items.length;
           break;
-        case "Ignored Test":
+        case "Global Variable":
           smellsCount[6] = element.items.length;
           break;
-        case "Lazy Test":
+        case "Ignored Test":
           smellsCount[7] = element.items.length;
           break;
-        case "Magic Number":
+        case "Lazy Test":
           smellsCount[8] = element.items.length;
           break;
-        case "Mystery Guest":
+        case "Magic Number":
           smellsCount[9] = element.items.length;
           break;
-        case "Redundant Assertion":
+        case "Mystery Guest":
           smellsCount[10] = element.items.length;
           break;
-        case "Redundant Print":
+        case "Redundant Assertion":
           smellsCount[11] = element.items.length;
           break;
-        case "Resource Optimism":
+        case "Redundant Print":
           smellsCount[12] = element.items.length;
           break;
-        case "Sleepy Test":
+        case "Resource Optimism":
           smellsCount[13] = element.items.length;
           break;
-        case "Unknown Test":
+        case "Sleepy Test":
           smellsCount[14] = element.items.length;
+          break;
+        case "Unknown Test":
+          smellsCount[15] = element.items.length;
           break;
         default:
           break;
