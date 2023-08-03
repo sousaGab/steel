@@ -135,15 +135,15 @@ export default class MysteryGuestRule extends Rule {
     const modules = this.findRequires(ast);
     traverse(ast, {
       CallExpression: (path: any) => {
-        const node = path.node;
-        if (isTestCase(node)) {
+        if (isTestCase(path.node)) {
           path.traverse({
             MemberExpression: (path: any) => {
+              const node = path.node;
               modules.forEach(mdl => {
                 const filterModule = (item: any) => item.module === mdl.name;
                 mysteryMethods.filter(filterModule).forEach(item => {
-                  if (this.hasMysteryMethodCalled(path.node, mdl.alias, item.method)) {
-                    results.push(new Smell(path.node.loc.start));
+                  if (this.hasMysteryMethodCalled(node, mdl.alias, item.method)) {
+                    results.push(new Smell({ column: node.loc.start.column, line: node.loc.start.line }));
                   }
                 });
               });

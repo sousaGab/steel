@@ -610,7 +610,10 @@ describe('Clone', function () {
   // });
 
   test("if expect is detected", () => {
-    const expected: Smell[] = [];
+    const expected: Smell[] = [
+      new Smell({ line: 30, column: 8 }),
+      new Smell({ line: 48, column: 8 }),
+    ];
     const ast = parse(code4, parserOptions);
     const actual = new MysteryGuestRule().detect(ast);
     expect(actual).toEqual(expected);

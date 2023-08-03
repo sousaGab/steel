@@ -1,9 +1,18 @@
-import { File } from "@babel/types";
+import { File, isBooleanLiteral, isNumericLiteral, isStringLiteral } from "@babel/types";
 import traverse from "@babel/traverse";
 import { Smell } from "../smell";
-import { isAssertion, isChaiBdd, isLiteralTypes, isRedundantArguments, isChaiAssert, isJest, isTestCase } from "../util";
-import { isIdentifier } from "@babel/types";
+import { isAssertion, isChaiBdd, isJest } from "../util";
 import Rule from "../rule";
+
+function isLiteral(arg: any): boolean {
+  return isStringLiteral(arg) ||
+    isNumericLiteral(arg) ||
+    isBooleanLiteral(arg);
+}
+
+function isAssert(node: any) {
+  return isAssertion(node) || isChaiBdd(node) || isJest(node);
+}
 
 export default class RedundantAssertionRule extends Rule {
 
@@ -12,37 +21,40 @@ export default class RedundantAssertionRule extends Rule {
   }
 
   detect(ast: File): Smell[] {
-    const results: Smell[] = [];
+    const redundants: Smell[] = [];
     traverse(ast, {
       CallExpression: (path: any) => {
         const node = path.node;
-        if (isTestCase(node)) {
-          path.traverse({
-            CallExpression: (path: any) => {
-              const node = path.node;
-              if ((isAssertion(node) || isChaiAssert(node))
-                && isLiteralTypes(node.arguments[0])
-                && isRedundantArguments(node.arguments[0], node.arguments[0])) {
-                results.push(new Smell(node.loc.start));
-              }
-              else if (isChaiBdd(node) || isJest(node)) {
-                path.traverse({
-                  CallExpression: (innerPath: any) => {
-                    const innerNode = innerPath.node;
-                    if (isIdentifier(innerNode.callee)
-                      && innerNode.callee.name === "expect"
-                      && isLiteralTypes(innerNode.arguments[0])
-                      && isRedundantArguments(innerNode.arguments[0], node.arguments[0])) {
-                      results.push(new Smell(node.loc.start));
-                    }
-                  }
-                });
+        if (isAssert(node)) {
+          if (node.callee?.name) {
+            if (node.callee.name.startsWith('assert')) {
+              if (node.arguments.every(isLiteral)) {
+                redundants.push(new Smell({ column: node.loc.start.column, line: node.loc.start.line }));
               }
             }
-          });
+            if (node.callee.name.startsWith('expect')) {
+              // const expressionStatement = path.getStatementParent();
+              // console.log("expressionStatement:", expressionStatement.node.loc.start.line);
+              const chainedCall = path.findParent((p: any) => p.isCallExpression());
+
+              const args = [...node.arguments];
+              if (chainedCall && chainedCall.node.arguments.every(isLiteral)) {
+                args.push(...chainedCall.node.arguments);
+              }
+
+              if (args.every(isLiteral)) {
+                redundants.push(new Smell({ column: node.loc.start.column, line: node.loc.start.line }));
+              }
+            }
+          }
+          else if (node.callee?.object?.name === 'assert') {
+            if (node.arguments.every(isLiteral)) {
+              redundants.push(new Smell({ column: node.loc.start.column, line: node.loc.start.line }));
+            }
+          }
         }
       }
     });
-    return results;
+    return redundants;
   }
 }
