@@ -1,6 +1,7 @@
 import { basename } from "path";
 import { Detection, Report } from "./types";
 import { getNumberOfTestMethods } from "./util";
+import { execSync } from "child_process";
 
 const escomplexModule = require('typhonjs-escomplex-module');
 
@@ -19,8 +20,13 @@ export function processData(detections: Detection[]): Report {
     }
   });
 
+  const tagOutput = execSync('git tag');
+  const version = tagOutput.toString().trim().split('\n');
+  const lastLine = version.length - 1;
+
   return {
     project: basename(process.cwd()),
+    version: version[lastLine],
     testSuites: detections.length,
     testCases: data.map(item => item.testCases).reduce((sum, val) => sum + val),
     smelledTestSuites: data.length,

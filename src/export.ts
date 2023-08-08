@@ -3,7 +3,6 @@ import { Accumulator, Detection, Report, SmelledFile, SmellInfo } from './types'
 import { EOL } from "os"
 import Mustache from 'mustache';
 import { listSmellPackageNames } from "./pluginManager";
-import { processData } from './data';
 import color from "./color";
 import { Smell } from "./smell";
 
@@ -127,9 +126,20 @@ function getMetrics(report: Report) {
 
 export function writeResumeCsv(report: Report, outputPath: string): void {
   const plugins = listSmellPackageNames();
-  const output = ['project, total_of_test_files, total_smelled_files, test_methods, test_smells,' + plugins.join() + ',' + qualityHeaders.join()];
+  const header = [
+    "project",
+    "version",
+    "total_of_test_files",
+    "total_smelled_files",
+    "test_methods",
+    "test_smells",
+    ...plugins,
+    ...qualityHeaders
+  ];
+  const output = [header.join()];
   const row = [];
   row.push(report.project);
+  row.push(report.version);
   row.push(report.testSuites);
   row.push(report.smelledTestSuites);
   row.push(report.testCases);
@@ -169,41 +179,6 @@ export function writeResumeCsv(report: Report, outputPath: string): void {
 }
 
 export function writeDetailedCsv(report: Report, outputPath: string): void {
-  // const output: any = [];
-  // output.push(
-  //   [
-  //     'Filename',
-  //     'TotalMethods',
-  //     'TotalTestSmells',
-  //     'Physical SLOC',
-  //     'Logical SLOC',
-  //     'Cyclomatic',
-  //     'CyclomaticDensity',
-  //     'HalsteadBugs',         // The number of delivered bugs (B) correlates with the overall complexity of the software.
-  //     'HalsteadDifficulty',   // This parameter shows how difficult to handle the program is.
-  //     'HalsteadEffort',       // Measures the amount of mental activity needed to translate the existing algorithm into implementation in the specified program language.
-  //     'HalsteadLength',       // The total number of operator occurrences and the total number of operand occurrences.
-  //     'HalsteadTime',         // Shows time (in minutes) needed to translate the existing algorithm into implementation in the specified program language.
-  //     'HalsteadVocabulary',   // The total number of unique operator and unique operand occurrences.
-  //     'HalsteadVolume',       // Proportional to program size, represents the size, in bits, of space necessary for storing the program.
-  //     'Maintainability',
-  //     'AssertionRoulette',
-  //     'ConditionalTestLogic',
-  //     'DuplicateAsserts',
-  //     'EagerTest',
-  //     'EmptyTest',
-  //     'ExceptionHandling',
-  //     'IgnoredTest',
-  //     'LazyTest',
-  //     'MagicTest',
-  //     'MysteryTest',
-  //     'RedundantAssertion',
-  //     'RedundantPrint',
-  //     'ResourceOptimism',
-  //     'SleepyTest',
-  //     'UnknownTest',
-  //   ].join(',')
-  // );
   const plugins = listSmellPackageNames();
   const output = ['FileName, TotalMethods, TotalTestSmells,' + qualityHeaders.join() + ',' + plugins.join()];
   report.smelledFiles.forEach(file => {

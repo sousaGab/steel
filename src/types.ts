@@ -9,6 +9,7 @@ export type FileInfo = {
 
 export type Report = {
   project: string;
+  version: string;
   testSuites: number; // totalOfTestFiles: number;
   testCases: number; //totalOfTestMethods: number;
   smelledTestSuites: number; //totalOfInfectedTestFiles: number;
