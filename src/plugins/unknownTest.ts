@@ -1,7 +1,7 @@
-import { CallExpression, File } from "@babel/types";
+import { CallExpression, File, isBlockStatement, StringLiteral } from "@babel/types";
 import traverse, { NodePath } from "@babel/traverse";
 import { Smell } from "../smell";
-import { isAssertion, isTestCase, isChaiAssert, isJest, isChaiBdd, isChaiShould, isChaiHttp } from "../util";
+import { isAssertion, isTestCase, isChaiAssert, isJest, isChaiBdd, isChaiShould, isChaiHttp, isFunctionOrArrow } from "../util";
 import Rule from "../rule";
 
 export default class UnknownTestRule extends Rule {
@@ -11,11 +11,15 @@ export default class UnknownTestRule extends Rule {
   }
 
   detect(ast: File): Smell[] {
+    const hasBody = (el: any) => isFunctionOrArrow(el)
+      // && Array.isArray(el.body.body) 
+      && isBlockStatement(el.body)
+      && el.body.body.length > 0; //
     const results: Smell[] = [];
     traverse(ast, {
       CallExpression: (path: NodePath<CallExpression>) => {
         const node = path.node;
-        if (isTestCase(node)) {
+        if (isTestCase(node) && node.arguments.some(hasBody)) {
           const assertions: any[] = [];
           path.traverse({
             CallExpression: (path: any) => {

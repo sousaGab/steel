@@ -77,7 +77,7 @@ const jestMethods = [
   "toBeNaN", "toMatchSnapshot", "toMatchInlineSnapshot"
 ];
 
-function isFunction(node: any): boolean {
+export function isFunctionOrArrow(node: any): boolean {
   return isArrowFunctionExpression(node)
     || isFunctionExpression(node);
 };
@@ -155,11 +155,13 @@ export function isJestNoNumericArgs(node: CallExpression): boolean {
     && allowedMethods.includes(node.callee.property.name);
 }
 export function isTestCase(node: CallExpression): boolean {
-  const testCaseCallee = ["it", "test"];
+  const testCaseCallee = ["it", "test", "specify"];
+  // const testCaseCallee = ["it", "test"];
   return isIdentifier(node.callee)
     && testCaseCallee.includes(node.callee.name)
     && isStringLiteral(node.arguments[0])
-    && isFunction(node.arguments[1]);
+    // && isFunction(node.arguments[1]);
+    && node.arguments.some(isFunctionOrArrow);
 }
 
 export function isTestCaseIgnored(node: CallExpression): boolean {
@@ -237,13 +239,11 @@ export function getImports(ast: File) {
         isIdentifier(path.node.init.callee, { name: "require" }) &&
         (path.node.init.arguments[0] as StringLiteral).value?.match(regex)) {
         const relativePath = (path.node.init.arguments[0] as StringLiteral).value;
-        // console.log('    > require: ', relativePath);
         importArray.push(relativePath);
       }
     },
     ImportDeclaration(path) {
       if (path.node.source.value.match(regex)) {
-        // console.log('    > import: ', path.node.source.value);
         const relativePath = path.node.source.value;
         importArray.push(relativePath);
       }
