@@ -19,7 +19,7 @@ program
   .description('detect test smells for glob pattern. i.e.: "**/*.test.js"')
   .action((pattern) => {
     const report = run(pattern);
-    if(report.isLeft()) {
+    if (report.isLeft()) {
       console.log(report.value.message);
       return;
     }
