@@ -1,8 +1,8 @@
 {
   "bin": {
-    "steela": "./dist/index.js"
+    "steel": "./dist/index.js"
   },
-  "name": "steela",
+  "name": "steel",
   "version": "3.0.0",
   "description": "",
   "main": "index.js",

@@ -1,13 +1,20 @@
 import { File, CallExpression, isMemberExpression, isIdentifier } from "@babel/types";
-import traverse, { Scope } from "@babel/traverse";
+import traverse from "@babel/traverse";
 import { Smell } from "../smell";
 import { isTestCase } from "../util";
 import Rule from "../rule";
 
-const nodeAssertParamsNum = new Map([
-  ["assert", 2],
-  ["ok", 2],
-  ["equal", 3]
+const assertionMetadata = new Map([
+  ["assert", { params: 2, hasMessage: true }],
+  ["deepEqual", { params: 3, hasMessage: true }],
+  ["deepStrictEqual", { params: 3, hasMessage: true }],
+  ["doesNotMatch", { params: 3, hasMessage: true }],
+  ["equal", { params: 3, hasMessage: true }],
+  ["fail", { params: 1, hasMessage: true }],
+  ["notEqual", { params: 3, hasMessage: true }],
+  ["notDeepEqual", { params: 3, hasMessage: true }],
+  ["ok", { params: 2, hasMessage: true }],
+  ["strictEqual", { params: 3, hasMessage: true }],
 ]);
 
 const chaiBddMethodsWithMessage = new Map([
@@ -28,17 +35,17 @@ export default class AssertionRouletteRule extends Rule {
     return (isIdentifier(node.callee) && node.callee.name === "assert") ||
       (isMemberExpression(node.callee) && isIdentifier(node.callee.object)
         && node.callee.object.name === "assert" && isIdentifier(node.callee.property)
-        && nodeAssertParamsNum.has(node.callee.property.name))
+        && assertionMetadata.has(node.callee.property.name))
   }
 
   private hasNoMessage(node: CallExpression): boolean {
     let result = false;
     if (isIdentifier(node.callee) && node.callee.name === "assert") {
-      result = node.arguments.length !== nodeAssertParamsNum.get(node.callee.name);
+      result = node.arguments.length !== assertionMetadata.get(node.callee.name)?.params;
     }
     else if (isMemberExpression(node.callee) && isIdentifier(node.callee.property)) {
       // console.log(node.callee.property.name, node.arguments.length, this.nodeAssertParamsNum.get(node.callee.property.name));
-      result = node.arguments.length !== nodeAssertParamsNum.get(node.callee.property.name);
+      result = node.arguments.length !== assertionMetadata.get(node.callee.property.name)?.params;
     }
 
     return result;
@@ -79,6 +86,6 @@ export default class AssertionRouletteRule extends Rule {
       }
     });
 
-    return results.map((node: any) => new Smell({column: node.loc.start.column, line: node.loc.start.line}));
+    return results.map((node: any) => new Smell({ column: node.loc.start.column, line: node.loc.start.line }));
   }
 }

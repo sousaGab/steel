@@ -21,18 +21,19 @@ export default class ConditionalTestLogicRule extends Rule {
 
   detect(ast: File): Smell[] {
     const results: Smell[] = [];
-    const newSmell = (loc: any) =>
-      results.push(new Smell(loc.start));
     traverse(ast, {
-      IfStatement: (path: any) => { newSmell(path.node.loc); },
-      ForStatement: (path: any) => { newSmell(path.node.loc); },
-      ForInStatement: (path: any) => { newSmell(path.node.loc); },
-      ForOfStatement: (path: any) => { newSmell(path.node.loc); },
-      WhileStatement: (path: any) => { newSmell(path.node.loc); },
-      SwitchStatement: (path: any) => { newSmell(path.node.loc); },
+      IfStatement: (path: any) => { results.push(new Smell(path.node.loc.start)) },
+      ForStatement: (path: any) => { results.push(new Smell(path.node.loc.start)) },
+      ForInStatement: (path: any) => { results.push(new Smell(path.node.loc.start)) },
+      ForOfStatement: (path: any) => { results.push(new Smell(path.node.loc.start)) },
+      WhileStatement: (path: any) => { results.push(new Smell(path.node.loc.start)) },
+      SwitchStatement: (path: any) => { results.push(new Smell(path.node.loc.start)) },
       CallExpression: (path: any) => {
-        if (this.isForEach(path.node)) {
-          newSmell(path.node.callee.property.loc);
+        if (isMemberExpression(path.node.callee)
+        && isArrayExpression(path.node.callee.object)
+        && isIdentifier(path.node.callee.property)
+        && path.node.callee.property.name === "forEach") {
+          results.push(new Smell(path.node.callee.property.loc.start))
         }
       }
     });
