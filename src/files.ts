@@ -15,18 +15,27 @@ const parserOptions: ParserOptions = {
 };
 
 export function parseSuites(pattern: string): Either<NoFileError, FileInfo[]> {
-  const files = glob.sync(pattern, { ignore: '**/node_modules/**' });
-  if (files.length === 0) {
+  // Retrieve all files matching the pattern
+  const files = glob.sync(pattern, { 
+    absolute: true // Ensure absolute paths are returned
+  });
+
+  // Explicitly filter out files in node_modules and dist
+  const filteredFiles = files.filter(file => 
+    !file.includes('node_modules') && !file.includes('dist')
+  );
+
+  if (filteredFiles.length === 0) {
     return left(new NoFileError());
   }
 
-  const parsedFiles = files.map(path => {
+  const parsedFiles = filteredFiles.map(path => {
     const code = readFileSync(path, 'utf8');
     const ast = parse(code, parserOptions);
     return <FileInfo>{ path: resolve(path), code: code, ast: ast };
-  })
+  });
 
-  const filteredFiles = parsedFiles.filter(file => isTestSuite(file.ast));
+  const testSuites = parsedFiles.filter(file => isTestSuite(file.ast));
 
-  return right(filteredFiles);
+  return right(testSuites);
 }
